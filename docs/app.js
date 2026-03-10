@@ -1,4 +1,4 @@
-// Ideiglenes ital lista (később backendből jön)
+// --- Ital lista (később adminból jön majd) ---
 const drinks = [
     "Coca-Cola",
     "Coca-Cola Zero",
@@ -6,14 +6,15 @@ const drinks = [
     "Fanta Narancs",
     "Sprite",
     "Vodka",
-    "Whisky",
+    "Whiskey",
     "Sör",
     "Bor"
 ];
 
-let selectedDrink = null;
 let order = [];
+let selectedDrink = null;
 
+// --- Kereső popup ---
 document.getElementById("openSearchBtn").onclick = () => {
     document.getElementById("searchPopup").classList.remove("hidden");
     document.getElementById("searchInput").value = "";
@@ -24,8 +25,8 @@ function closeSearch() {
     document.getElementById("searchPopup").classList.add("hidden");
 }
 
-document.getElementById("searchInput").oninput = function () {
-    const text = this.value.toLowerCase();
+document.getElementById("searchInput").oninput = () => {
+    const text = document.getElementById("searchInput").value.toLowerCase();
     const results = drinks.filter(d => d.toLowerCase().includes(text));
 
     const container = document.getElementById("searchResults");
@@ -49,20 +50,22 @@ function closeQuantity() {
     document.getElementById("quantityPopup").classList.add("hidden");
 }
 
+// --- Mennyiség ---
 function addQuantity(qty) {
     order.push({ drink: selectedDrink, qty });
-    updateOrderList();
     closeQuantity();
     closeSearch();
+    updateOrderList();
 }
 
 function customQuantity() {
-    const qty = prompt("Add meg a mennyiséget:");
-    if (qty && !isNaN(qty)) {
-        addQuantity(Number(qty));
+    const qty = parseInt(prompt("Add meg a mennyiséget:"), 10);
+    if (!isNaN(qty) && qty > 0) {
+        addQuantity(qty);
     }
 }
 
+// --- Lista frissítése ---
 function updateOrderList() {
     const list = document.getElementById("orderList");
     list.innerHTML = "";
@@ -74,8 +77,27 @@ function updateOrderList() {
     });
 }
 
-document.getElementById("sendBtn").onclick = () => {
-    alert("Rögzítve! (később backendre megy)");
+// --- Küldés Supabase-be ---
+document.getElementById("sendBtn").onclick = async () => {
+    if (order.length === 0) {
+        alert("Nincs mit küldeni.");
+        return;
+    }
+
+    const rows = order.map(o => ({
+        drink: o.drink,
+        qty: o.qty
+    }));
+
+    const { error } = await supabase.from("orders").insert(rows);
+
+    if (error) {
+        console.error(error);
+        alert("Hiba történt a mentés közben.");
+        return;
+    }
+
+    alert("Rendelés elküldve!");
     order = [];
     updateOrderList();
 };
