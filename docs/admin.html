@@ -19,6 +19,7 @@
         <input id="drinkName" placeholder="Ital neve" />
         <button id="addDrinkBtn">Hozzáadás</button>
       </div>
+      <div id="adminNotice" class="muted"></div>
     </section>
 
     <section class="card">
@@ -32,6 +33,9 @@
     </section>
   </main>
 
+  <!-- Ha a CDN blokkolva van, cseréld le a következő sort lokális vendor fájlra:
+       <script src="vendor/supabase-js.min.js"></script>
+       vagy használd Chrome-ot teszteléshez. -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase.js"></script>
   <script src="admin.js"></script>
