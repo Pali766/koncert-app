@@ -1,8 +1,4 @@
 // docs/supabase.js
-// Biztonságos Supabase wrapper a webes prototípushoz.
-// Feltételezi, hogy a HTML előbb betölti a CDN scriptet:
-// <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 (function () {
   if (window.__KONCERT_SUPABASE_CLIENT) {
     window.supabaseClient = window.__KONCERT_SUPABASE_CLIENT;
