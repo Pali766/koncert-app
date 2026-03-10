@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crack del Mes — Educación</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0a0a1a; color: #e8e8ff; font-family: 'DM Sans', sans-serif; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #root { min-height: 100vh; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- React + Babel -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // ── CREDENCIALES SUPABASE ──────────────────────────────────────────────
+    const SUPABASE_URL = "https://xajyhdcozfjynttqfwtw.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhhanloZGNvemZqeW50dHFmd3R3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3ODczNTUsImV4cCI6MjA4ODM2MzM1NX0.OFNIv1IdoSUmJfP0KpRh99usChG3exWKvJWaKKhSaY4";
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // ──────────────────────────────────────────────────────────────────────
+
+    const CATALOG = [
+      { id: 1, label: "Curso publicado en fecha", pts: 10, icon: "🎓" },
+      { id: 2, label: "Colaboración con otro departamento/proyecto", pts: 4, icon: "🤝" },
+      { id: 3, label: "Propuesta de mejora técnica/edición/creación", pts: 5, icon: "💡" },
+      { id: 4, label: "Control de Calidad", pts: 1, icon: "✅" },
+      { id: 5, label: "Bonus por entrega antes de tiempo", pts: 3, icon: "⚡" },
+      { id: 6, label: "Resolución de incidencia", pts: 1, icon: "🔧" },
+    ];
+
+    const PALETTE = [
+      { main: "#FF6B6B", glow: "rgba(255,107,107,0.4)" },
+      { main: "#4ECDC4", glow: "rgba(78,205,196,0.4)" },
+      { main: "#FFE66D", glow: "rgba(255,230,109,0.4)" },
+      { main: "#a78bfa", glow: "rgba(167,139,250,0.4)" },
+    ];
+
+    const MONTH_NAMES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+    const now = new Date();
+    const monthKey = `${now.getFullYear()}-${now.getMonth()}`;
+    const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const isLastDay = now.getDate() === lastDayOfMonth;
+
+    function getUserColor(name, allNames) {
+      const idx = [...allNames].sort().indexOf(name);
+      return PALETTE[idx % PALETTE.length] || PALETTE[0];
+    }
+
+    const S = {
+      app: { minHeight: "100vh", background: "linear-gradient(135deg, #0a0a1a 0%, #0f0f2e 50%, #0a0a1a 100%)", fontFamily: "'DM Sans', sans-serif", color: "#e8e8ff" },
+      nav: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 32px", background: "rgba(255,255,255,0.03)", borderBottom: "1px solid rgba(255,255,255,0.08)", backdropFilter: "blur(12px)", position: "sticky", top: 0, zIndex: 100 },
+      logo: { fontSize: "22px", fontWeight: "800", letterSpacing: "-0.5px", background: "linear-gradient(90deg, #FF6B6B, #FFE66D, #4ECDC4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" },
+      navBtn: (active) => ({ padding: "8px 16px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: "600", background: active ? "rgba(255,255,255,0.12)" : "transparent", color: active ? "#fff" : "rgba(255,255,255,0.55)", transition: "all 0.2s" }),
+      userBadge: { display: "flex", alignItems: "center", gap: "10px", padding: "6px 14px", borderRadius: "20px", background: "rgba(255,255,255,0.07)", fontSize: "13px", fontWeight: "600" },
+      main: { maxWidth: "900px", margin: "0 auto", padding: "32px 20px" },
+      card: { background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "20px", padding: "28px", marginBottom: "24px", backdropFilter: "blur(8px)" },
+      sectionTitle: { fontSize: "13px", fontWeight: "700", letterSpacing: "2px", color: "rgba(255,255,255,0.4)", textTransform: "uppercase", marginBottom: "20px" },
+      input: { width: "100%", padding: "12px 16px", borderRadius: "10px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", color: "#e8e8ff", fontSize: "14px", outline: "none", boxSizing: "border-box" },
+      select: { width: "100%", padding: "12px 16px", borderRadius: "10px", background: "rgba(20,20,50,0.9)", border: "1px solid rgba(255,255,255,0.12)", color: "#e8e8ff", fontSize: "14px", outline: "none", boxSizing: "border-box" },
+      label: { fontSize: "12px", fontWeight: "700", color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "6px", display: "block" },
+      btn: (color = "#4ECDC4") => ({ padding: "12px 24px", borderRadius: "10px", border: "none", cursor: "pointer", background: `linear-gradient(135deg, ${color}, ${color}99)`, color: "#000", fontWeight: "800", fontSize: "14px", boxShadow: `0 4px 20px ${color}44`, transition: "transform 0.15s" }),
+      smallBtn: (c = "#4ECDC4") => ({ padding: "6px 12px", borderRadius: "6px", border: "none", cursor: "pointer", background: "rgba(78,205,196,0.15)", color: c, fontSize: "12px", fontWeight: "700" }),
+      dangerBtn: { padding: "6px 12px", borderRadius: "6px", border: "none", cursor: "pointer", background: "rgba(255,80,80,0.15)", color: "#ff6b6b", fontSize: "12px", fontWeight: "700" },
+      th: { textAlign: "left", padding: "10px 14px", fontSize: "11px", fontWeight: "700", letterSpacing: "1.5px", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", borderBottom: "1px solid rgba(255,255,255,0.07)" },
+      td: { padding: "12px 14px", fontSize: "13px", borderBottom: "1px solid rgba(255,255,255,0.05)" },
+      badge: (v) => ({ display: "inline-block", padding: "2px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: "700", background: v ? "rgba(78,205,196,0.15)" : "rgba(255,230,109,0.15)", color: v ? "#4ECDC4" : "#FFE66D" }),
+      roleBadge: (r) => ({ display: "inline-block", padding: "2px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: "700", background: r === "admin" ? "rgba(255,230,109,0.15)" : r === "user" ? "rgba(78,205,196,0.15)" : "rgba(255,255,255,0.08)", color: r === "admin" ? "#FFE66D" : r === "user" ? "#4ECDC4" : "rgba(255,255,255,0.4)" }),
+      overlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center" },
+      modal: { background: "#0f0f2e", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "20px", padding: "32px", width: "90%", maxWidth: "480px" },
+      loginWrap: { minHeight: "100vh", background: "linear-gradient(135deg, #0a0a1a 0%, #0f0f2e 50%, #0a0a1a 100%)", display: "flex", alignItems: "center", justifyContent: "center" },
+      loginCard: { background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "24px", padding: "48px", width: "100%", maxWidth: "420px", backdropFilter: "blur(12px)" },
+      loginTitle: { fontSize: "32px", fontWeight: "900", textAlign: "center", marginBottom: "8px", background: "linear-gradient(90deg, #FF6B6B, #FFE66D, #4ECDC4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" },
+      error: { color: "#FF6B6B", fontSize: "13px", textAlign: "center", padding: "8px", background: "rgba(255,107,107,0.08)", borderRadius: "8px" },
+      success: { color: "#4ECDC4", fontSize: "13px", padding: "8px", background: "rgba(78,205,196,0.08)", borderRadius: "8px" },
+      spinner: { display: "inline-block", width: "18px", height: "18px", border: "2px solid rgba(255,255,255,0.15)", borderTop: "2px solid #4ECDC4", borderRadius: "50%", animation: "spin 0.8s linear infinite" },
+    };
+
+    function App() {
+      const [session, setSession] = useState(null);
+      const [profile, setProfile] = useState(null);
+      const [loading, setLoading] = useState(true);
+      const [view, setView] = useState("dashboard");
+      const [authMode, setAuthMode] = useState("login");
+      const [authForm, setAuthForm] = useState({ email: "", password: "", name: "" });
+      const [authError, setAuthError] = useState("");
+      const [authLoading, setAuthLoading] = useState(false);
+
+      const [records, setRecords] = useState([]);
+      const [profiles, setProfiles] = useState([]);
+      const [history, setHistory] = useState([]);
+
+      const [form, setForm] = useState({ catalogId: "", date: new Date().toISOString().split("T")[0], desc: "" });
+      const [formMsg, setFormMsg] = useState("");
+      const [closingMonth, setClosingMonth] = useState(false);
+      const [editRecord, setEditRecord] = useState(null);
+
+      useEffect(() => {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          setSession(session);
+          if (session) loadProfile(session.user.id);
+          else setLoading(false);
+        });
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
+          setSession(session);
+          if (session) loadProfile(session.user.id);
+          else { setProfile(null); setLoading(false); }
+        });
+        return () => subscription.unsubscribe();
+      }, []);
+
+      useEffect(() => {
+        if (profile) { loadRecords(); loadProfiles(); loadHistory(); }
+      }, [profile]);
+
+      async function loadProfile(uid) {
+        const { data } = await supabase.from("profiles").select("*").eq("id", uid).single();
+        setProfile(data);
+        setLoading(false);
+      }
+      async function loadRecords() {
+        const { data } = await supabase.from("records").select("*").order("created_at", { ascending: false });
+        setRecords(data || []);
+      }
+      async function loadProfiles() {
+        const { data } = await supabase.from("profiles").select("*").order("name");
+        setProfiles(data || []);
+      }
+      async function loadHistory() {
+        const { data } = await supabase.from("month_history").select("*").order("closed_at", { ascending: false });
+        setHistory(data || []);
+      }
+
+      async function handleLogin() {
+        setAuthLoading(true); setAuthError("");
+        const { error } = await supabase.auth.signInWithPassword({ email: authForm.email, password: authForm.password });
+        if (error) setAuthError(error.message === "Invalid login credentials" ? "Email o contraseña incorrectos." : error.message);
+        setAuthLoading(false);
+      }
+      async function handleRegister() {
+        if (!authForm.name.trim()) { setAuthError("Introduce tu nombre."); return; }
+        if (authForm.password.length < 6) { setAuthError("La contraseña debe tener al menos 6 caracteres."); return; }
+        setAuthLoading(true); setAuthError("");
+        const { error } = await supabase.auth.signUp({
+          email: authForm.email, password: authForm.password,
+          options: { data: { name: authForm.name } },
+        });
+        if (error) setAuthError(error.message);
+        else setAuthError("✅ ¡Cuenta creada! Revisa tu email para confirmarla, luego inicia sesión.");
+        setAuthLoading(false);
+      }
+      async function handleLogout() {
+        await supabase.auth.signOut(); setView("dashboard");
+      }
+      async function handleSubmit() {
+        if (!form.catalogId || !form.date || !form.desc.trim()) { setFormMsg("⚠️ Completa todos los campos."); return; }
+        const cat = CATALOG.find(c => c.id === parseInt(form.catalogId));
+        const { error } = await supabase.from("records").insert({
+          user_id: session.user.id, user_name: profile.name,
+          catalog_id: cat.id, pts: cat.pts,
+          description: form.desc, date: form.date, month: monthKey, validated: false,
+        });
+        if (error) { setFormMsg("❌ Error: " + error.message); return; }
+        await loadRecords();
+        setForm({ catalogId: "", date: new Date().toISOString().split("T")[0], desc: "" });
+        setFormMsg("✅ Logro registrado. Pendiente de validación por Amanda.");
+        setTimeout(() => setFormMsg(""), 5000);
+      }
+      async function handleValidate(id) {
+        await supabase.from("records").update({ validated: true }).eq("id", id);
+        await loadRecords();
+      }
+      async function handleDelete(id) {
+        await supabase.from("records").delete().eq("id", id);
+        await loadRecords();
+      }
+      async function handleSaveEdit() {
+        const cat = CATALOG.find(c => c.id === editRecord.catalog_id);
+        await supabase.from("records").update({ catalog_id: editRecord.catalog_id, pts: cat.pts, description: editRecord.description, date: editRecord.date }).eq("id", editRecord.id);
+        await loadRecords(); setEditRecord(null);
+      }
+      async function handleUpdateRole(uid, role) {
+        await supabase.from("profiles").update({ role }).eq("id", uid);
+        await loadProfiles();
+      }
+      async function handleCloseMonth() {
+        const monthRecords = records.filter(r => r.month === monthKey && r.validated);
+        const scores = profiles.filter(p => p.role === "user").map(p => ({
+          name: p.name,
+          pts: monthRecords.filter(r => r.user_id === p.id).reduce((a, b) => a + b.pts, 0),
+        })).sort((a, b) => b.pts - a.pts);
+        const winnerName = scores[0]?.name || "—";
+        await supabase.from("month_history").insert({
+          month: monthKey, label: `${MONTH_NAMES[now.getMonth()]} ${now.getFullYear()}`,
+          winner: winnerName, scores,
+        });
+        await loadHistory(); setClosingMonth(false); setView("dashboard");
+      }
+
+      const teamProfiles = profiles.filter(p => p.role === "user");
+      const allNames = teamProfiles.map(p => p.name);
+      const currentPoints = teamProfiles.map(p => ({
+        ...p,
+        pts: records.filter(r => r.user_id === p.id && r.month === monthKey && r.validated).reduce((a, b) => a + b.pts, 0),
+      })).sort((a, b) => b.pts - a.pts);
+      const maxPts = Math.max(...currentPoints.map(u => u.pts), 1);
+      const winner = currentPoints[0];
+      const visibleRecords = profile?.role === "admin" ? records : records.filter(r => r.user_id === session?.user?.id);
+
+      // LOADING
+      if (loading) return (
+        <div style={S.loginWrap}>
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: "48px", marginBottom: "16px" }}>🏆</div>
+            <div style={S.spinner} />
+            <div style={{ marginTop: "12px", color: "rgba(255,255,255,0.3)", fontSize: "13px" }}>Conectando...</div>
+          </div>
+        </div>
+      );
+
+      // AUTH
+      if (!session || !profile) return (
+        <div style={S.loginWrap}>
+          <div style={S.loginCard}>
+            <div style={{ textAlign: "center", marginBottom: "32px" }}>
+              <div style={{ fontSize: "48px", marginBottom: "8px" }}>🏆</div>
+              <div style={S.loginTitle}>Crack del Mes</div>
+              <div style={{ color: "rgba(255,255,255,0.4)", fontSize: "14px" }}>Educación · Sistema de Puntos</div>
+            </div>
+            <div style={{ display: "flex", marginBottom: "24px", background: "rgba(255,255,255,0.04)", borderRadius: "10px", padding: "4px" }}>
+              {["login", "register"].map(m => (
+                <button key={m} style={{ flex: 1, padding: "9px", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: "700", fontSize: "13px", background: authMode === m ? "rgba(255,255,255,0.1)" : "transparent", color: authMode === m ? "#fff" : "rgba(255,255,255,0.4)", transition: "all 0.2s" }} onClick={() => { setAuthMode(m); setAuthError(""); }}>
+                  {m === "login" ? "Iniciar sesión" : "Registrarse"}
+                </button>
+              ))}
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+              {authMode === "register" && (
+                <div>
+                  <label style={S.label}>Nombre</label>
+                  <input style={S.input} placeholder="Tu nombre (ej: Inma)" value={authForm.name} onChange={e => setAuthForm(f => ({ ...f, name: e.target.value }))} />
+                </div>
+              )}
+              <div>
+                <label style={S.label}>Email</label>
+                <input style={S.input} type="email" placeholder="tu@edu.com" value={authForm.email} onChange={e => setAuthForm(f => ({ ...f, email: e.target.value }))} onKeyDown={e => e.key === "Enter" && (authMode === "login" ? handleLogin() : handleRegister())} />
+              </div>
+              <div>
+                <label style={S.label}>Contraseña</label>
+                <input style={S.input} type="password" placeholder="Mínimo 6 caracteres" value={authForm.password} onChange={e => setAuthForm(f => ({ ...f, password: e.target.value }))} onKeyDown={e => e.key === "Enter" && (authMode === "login" ? handleLogin() : handleRegister())} />
+              </div>
+              {authError && <div style={authError.startsWith("✅") ? S.success : S.error}>{authError}</div>}
+              <button style={{ ...S.btn("#4ECDC4"), width: "100%", marginTop: "4px", opacity: authLoading ? 0.7 : 1 }} onClick={authMode === "login" ? handleLogin : handleRegister} disabled={authLoading}>
+                {authLoading ? "Cargando..." : authMode === "login" ? "Entrar →" : "Crear cuenta →"}
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+
+      // MAIN APP
+      return (
+        <div style={S.app}>
+          <nav style={S.nav}>
+            <div style={S.logo}>🏆 Crack del Mes</div>
+            <div style={{ display: "flex", gap: "8px" }}>
+              {["dashboard", "registrar", "historial"].map(v => (
+                (v !== "registrar" || profile.role !== "admin") &&
+                <button key={v} style={S.navBtn(view === v)} onClick={() => setView(v)}>
+                  {v === "dashboard" ? "📊 Ranking" : v === "registrar" ? "➕ Registrar" : "📋 Historial"}
+                </button>
+              ))}
+              {profile.role === "admin" && <button style={S.navBtn(view === "admin")} onClick={() => setView("admin")}>⚙️ Admin</button>}
+            </div>
+            <div style={S.userBadge}>
+              <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: `linear-gradient(135deg, ${getUserColor(profile.name, allNames).main}, #fff3)`, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "800", fontSize: "12px", color: "#000" }}>
+                {profile.name[0]}
+              </div>
+              <span>{profile.name}</span>
+              {profile.role === "admin" && <span style={{ fontSize: "10px", color: "#FFE66D", background: "rgba(255,230,109,0.15)", padding: "2px 7px", borderRadius: "10px" }}>ADMIN</span>}
+              <button onClick={handleLogout} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.3)", cursor: "pointer", fontSize: "18px" }}>×</button>
+            </div>
+          </nav>
+
+          <main style={S.main}>
+
+            {/* DASHBOARD */}
+            {view === "dashboard" && (
+              <>
+                <div style={{ marginBottom: "28px" }}>
+                  <div style={{ fontSize: "28px", fontWeight: "900" }}>{MONTH_NAMES[now.getMonth()]} {now.getFullYear()}</div>
+                  <div style={{ color: "rgba(255,255,255,0.4)", fontSize: "14px" }}>{records.filter(r => r.month === monthKey && r.validated).length} logros validados este mes</div>
+                </div>
+
+                {isLastDay && winner && (
+                  <div style={{ background: "linear-gradient(135deg, rgba(255,215,0,0.12), rgba(255,165,0,0.06))", border: "1px solid rgba(255,215,0,0.3)", borderRadius: "16px", padding: "20px 24px", display: "flex", alignItems: "center", gap: "16px", marginBottom: "24px" }}>
+                    <span style={{ fontSize: "36px" }}>🥇</span>
+                    <div>
+                      <div style={{ fontWeight: "800", fontSize: "16px" }}>¡Hoy es el último día del mes!</div>
+                      <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "13px" }}>El crack es <strong style={{ color: "#FFD700" }}>{winner.name}</strong> con {winner.pts} pts</div>
+                    </div>
+                    {profile.role === "admin" && (
+                      <button style={{ ...S.btn("#FFE66D"), marginLeft: "auto" }} onClick={() => setClosingMonth(true)}>Cerrar mes →</button>
+                    )}
+                  </div>
+                )}
+
+                <div style={S.card}>
+                  <div style={S.sectionTitle}>🏅 Leaderboard — {MONTH_NAMES[now.getMonth()]}</div>
+                  {currentPoints.length === 0 ? (
+                    <div style={{ color: "rgba(255,255,255,0.3)", textAlign: "center", padding: "32px 0" }}>Aún no hay usuarios activos este mes.</div>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                      {currentPoints.map((u, i) => {
+                        const color = getUserColor(u.name, allNames);
+                        return (
+                          <div key={u.id} style={{ display: "flex", alignItems: "center", gap: "16px", padding: "16px 20px", borderRadius: "14px", background: i === 0 ? `linear-gradient(135deg, ${color.glow}, rgba(255,255,255,0.04))` : "rgba(255,255,255,0.03)", border: i === 0 ? `1px solid ${color.main}44` : "1px solid rgba(255,255,255,0.07)" }}>
+                            <div style={{ width: "36px", height: "36px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "900", fontSize: i === 0 ? "18px" : "14px", background: i === 0 ? "linear-gradient(135deg, #FFD700, #FFA500)" : i === 1 ? "linear-gradient(135deg, #C0C0C0, #888)" : "linear-gradient(135deg, #CD7F32, #8B4513)", color: "#000", flexShrink: 0 }}>
+                              {i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉"}
+                            </div>
+                            <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: `linear-gradient(135deg, ${color.main}, #fff3)`, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "800", fontSize: "16px", color: "#000", flexShrink: 0 }}>
+                              {u.name[0]}
+                            </div>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontSize: "15px", fontWeight: "700", marginBottom: "4px" }}>{u.name}</div>
+                              <div style={{ height: "6px", borderRadius: "3px", background: `linear-gradient(90deg, ${color.main}, ${color.main}66)`, width: `${Math.max((u.pts / maxPts) * 100, 5)}%`, boxShadow: `0 0 10px ${color.glow}`, transition: "width 0.8s ease" }} />
+                            </div>
+                            <div style={{ fontSize: "26px", fontWeight: "900", color: color.main, textShadow: `0 0 20px ${color.glow}`, flexShrink: 0 }}>{u.pts}<span style={{ fontSize: "14px", opacity: 0.6 }}> pts</span></div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                <div style={S.card}>
+                  <div style={S.sectionTitle}>📝 Últimos logros del mes</div>
+                  <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                    <thead><tr>
+                      <th style={S.th}>Usuario</th><th style={S.th}>Logro</th><th style={S.th}>Descripción</th><th style={S.th}>Pts</th><th style={S.th}>Estado</th>
+                    </tr></thead>
+                    <tbody>
+                      {records.filter(r => r.month === monthKey).slice(0, 8).map(r => {
+                        const cat = CATALOG.find(c => c.id === r.catalog_id);
+                        const color = getUserColor(r.user_name, allNames);
+                        return (
+                          <tr key={r.id}>
+                            <td style={{ ...S.td, fontWeight: "700", color: color.main }}>{r.user_name}</td>
+                            <td style={S.td}>{cat?.icon} {cat?.label}</td>
+                            <td style={{ ...S.td, color: "rgba(255,255,255,0.5)" }}>{r.description}</td>
+                            <td style={{ ...S.td, fontWeight: "800", color: color.main }}>+{r.pts}</td>
+                            <td style={S.td}><span style={S.badge(r.validated)}>{r.validated ? "✓ Validado" : "⏳ Pendiente"}</span></td>
+                          </tr>
+                        );
+                      })}
+                      {records.filter(r => r.month === monthKey).length === 0 && <tr><td colSpan="5" style={{ ...S.td, textAlign: "center", color: "rgba(255,255,255,0.3)" }}>Sin logros este mes</td></tr>}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
+
+            {/* REGISTRAR */}
+            {view === "registrar" && profile.role !== "admin" && (
+              <div style={S.card}>
+                <div style={S.sectionTitle}>➕ Registrar logro</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+                  <div>
+                    <label style={S.label}>¿Qué has conseguido?</label>
+                    <select style={S.select} value={form.catalogId} onChange={e => setForm(f => ({ ...f, catalogId: e.target.value }))}>
+                      <option value="">Selecciona un item...</option>
+                      {CATALOG.map(c => <option key={c.id} value={c.id}>{c.icon} {c.label} — {c.pts} pts</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={S.label}>Fecha</label>
+                    <input style={S.input} type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
+                  </div>
+                  <div>
+                    <label style={S.label}>Descripción breve</label>
+                    <input style={S.input} type="text" placeholder="Describe tu logro..." value={form.desc} onChange={e => setForm(f => ({ ...f, desc: e.target.value }))} />
+                  </div>
+                  {form.catalogId && (
+                    <div style={{ padding: "14px 18px", borderRadius: "12px", background: "rgba(78,205,196,0.08)", border: "1px solid rgba(78,205,196,0.2)" }}>
+                      <span style={{ color: "#4ECDC4", fontWeight: "800" }}>+{CATALOG.find(c => c.id === parseInt(form.catalogId))?.pts} puntos</span>
+                      <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "13px" }}> — pendiente de validación por Amanda</span>
+                    </div>
+                  )}
+                  {formMsg && <div style={formMsg.startsWith("✅") ? S.success : { color: "#FFE66D", fontSize: "13px" }}>{formMsg}</div>}
+                  <button style={S.btn("#FF6B6B")} onClick={handleSubmit}>Enviar logro 🚀</button>
+                </div>
+              </div>
+            )}
+
+            {/* HISTORIAL */}
+            {view === "historial" && (
+              <>
+                <div style={S.card}>
+                  <div style={S.sectionTitle}>📋 Actividades</div>
+                  <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                    <thead><tr>
+                      {profile.role === "admin" && <th style={S.th}>Usuario</th>}
+                      <th style={S.th}>Logro</th><th style={S.th}>Descripción</th><th style={S.th}>Fecha</th><th style={S.th}>Pts</th><th style={S.th}>Estado</th>
+                    </tr></thead>
+                    <tbody>
+                      {visibleRecords.map(r => {
+                        const cat = CATALOG.find(c => c.id === r.catalog_id);
+                        const color = getUserColor(r.user_name, allNames);
+                        return (
+                          <tr key={r.id}>
+                            {profile.role === "admin" && <td style={{ ...S.td, fontWeight: "700", color: color.main }}>{r.user_name}</td>}
+                            <td style={S.td}>{cat?.icon} {cat?.label}</td>
+                            <td style={{ ...S.td, color: "rgba(255,255,255,0.5)" }}>{r.description}</td>
+                            <td style={{ ...S.td, color: "rgba(255,255,255,0.4)" }}>{r.date}</td>
+                            <td style={{ ...S.td, fontWeight: "800", color: color.main }}>+{r.pts}</td>
+                            <td style={S.td}><span style={S.badge(r.validated)}>{r.validated ? "✓ Validado" : "⏳ Pendiente"}</span></td>
+                          </tr>
+                        );
+                      })}
+                      {visibleRecords.length === 0 && <tr><td colSpan="6" style={{ ...S.td, textAlign: "center", color: "rgba(255,255,255,0.3)" }}>Sin registros aún</td></tr>}
+                    </tbody>
+                  </table>
+                </div>
+                {history.length > 0 && (
+                  <div style={S.card}>
+                    <div style={S.sectionTitle}>🗂 Meses anteriores</div>
+                    {history.map((h, i) => (
+                      <div key={i} style={{ padding: "16px", borderRadius: "12px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", marginBottom: "12px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <div style={{ fontWeight: "800" }}>{h.label}</div>
+                          <div style={{ fontSize: "13px", color: "#FFE66D" }}>🥇 {h.winner}</div>
+                        </div>
+                        <div style={{ display: "flex", gap: "16px", marginTop: "8px", flexWrap: "wrap" }}>
+                          {(h.scores || []).map(s => (
+                            <div key={s.name} style={{ fontSize: "13px", color: "rgba(255,255,255,0.5)" }}>
+                              <span style={{ color: getUserColor(s.name, allNames).main }}>{s.name}</span>: {s.pts} pts
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* ADMIN */}
+            {view === "admin" && profile.role === "admin" && (
+              <>
+                <div style={S.card}>
+                  <div style={S.sectionTitle}>👥 Gestión de Usuarios</div>
+                  <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                    <thead><tr>
+                      <th style={S.th}>Nombre</th><th style={S.th}>Email</th><th style={S.th}>Rol actual</th><th style={S.th}>Cambiar rol</th>
+                    </tr></thead>
+                    <tbody>
+                      {profiles.map(p => (
+                        <tr key={p.id}>
+                          <td style={{ ...S.td, fontWeight: "700" }}>{p.name}</td>
+                          <td style={{ ...S.td, color: "rgba(255,255,255,0.5)", fontSize: "12px" }}>{p.email}</td>
+                          <td style={S.td}><span style={S.roleBadge(p.role)}>{p.role}</span></td>
+                          <td style={{ ...S.td, display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                            {p.id !== session.user.id ? (
+                              <>
+                                {p.role !== "user" && <button style={S.smallBtn("#4ECDC4")} onClick={() => handleUpdateRole(p.id, "user")}>→ Usuario</button>}
+                                {p.role !== "admin" && <button style={S.smallBtn("#FFE66D")} onClick={() => handleUpdateRole(p.id, "admin")}>→ Admin</button>}
+                                {p.role !== "pending" && <button style={S.dangerBtn} onClick={() => handleUpdateRole(p.id, "pending")}>→ Pendiente</button>}
+                              </>
+                            ) : <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.2)" }}>Tú</span>}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div style={S.card}>
+                  <div style={S.sectionTitle}>⚙️ Validar y gestionar registros</div>
+                  <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                    <thead><tr>
+                      <th style={S.th}>Usuario</th><th style={S.th}>Logro</th><th style={S.th}>Descripción</th><th style={S.th}>Pts</th><th style={S.th}>Estado</th><th style={S.th}>Acciones</th>
+                    </tr></thead>
+                    <tbody>
+                      {records.map(r => {
+                        const cat = CATALOG.find(c => c.id === r.catalog_id);
+                        const color = getUserColor(r.user_name, allNames);
+                        return (
+                          <tr key={r.id}>
+                            <td style={{ ...S.td, fontWeight: "700", color: color.main }}>{r.user_name}</td>
+                            <td style={S.td}>{cat?.icon} {cat?.label}</td>
+                            <td style={{ ...S.td, color: "rgba(255,255,255,0.5)" }}>{r.description}</td>
+                            <td style={{ ...S.td, fontWeight: "800", color: color.main }}>+{r.pts}</td>
+                            <td style={S.td}><span style={S.badge(r.validated)}>{r.validated ? "✓ Validado" : "⏳ Pendiente"}</span></td>
+                            <td style={{ ...S.td, display: "flex", gap: "6px" }}>
+                              {!r.validated && <button style={S.smallBtn("#4ECDC4")} onClick={() => handleValidate(r.id)}>✓</button>}
+                              <button style={S.smallBtn("#FFE66D")} onClick={() => setEditRecord({ ...r })}>✏️</button>
+                              <button style={S.dangerBtn} onClick={() => handleDelete(r.id)}>🗑</button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                      {records.length === 0 && <tr><td colSpan="6" style={{ ...S.td, textAlign: "center", color: "rgba(255,255,255,0.3)" }}>Sin registros aún</td></tr>}
+                    </tbody>
+                  </table>
+                  {!isLastDay && (
+                    <div style={{ marginTop: "20px", padding: "14px 18px", borderRadius: "12px", background: "rgba(255,230,109,0.06)", border: "1px solid rgba(255,230,109,0.2)", fontSize: "13px", color: "rgba(255,255,255,0.4)" }}>
+                      ⏰ El cierre de mes estará disponible el {lastDayOfMonth} de {MONTH_NAMES[now.getMonth()]}.
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </main>
+
+          {/* MODAL EDITAR */}
+          {editRecord && (
+            <div style={S.overlay}>
+              <div style={S.modal}>
+                <div style={{ fontWeight: "800", fontSize: "18px", marginBottom: "20px" }}>✏️ Editar Registro</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+                  <div>
+                    <label style={S.label}>Logro</label>
+                    <select style={S.select} value={editRecord.catalog_id} onChange={e => setEditRecord(r => ({ ...r, catalog_id: parseInt(e.target.value) }))}>
+                      {CATALOG.map(c => <option key={c.id} value={c.id}>{c.icon} {c.label} — {c.pts} pts</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={S.label}>Descripción</label>
+                    <input style={S.input} value={editRecord.description} onChange={e => setEditRecord(r => ({ ...r, description: e.target.value }))} />
+                  </div>
+                  <div>
+                    <label style={S.label}>Fecha</label>
+                    <input style={S.input} type="date" value={editRecord.date} onChange={e => setEditRecord(r => ({ ...r, date: e.target.value }))} />
+                  </div>
+                  <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+                    <button style={S.dangerBtn} onClick={() => setEditRecord(null)}>Cancelar</button>
+                    <button style={S.btn("#4ECDC4")} onClick={handleSaveEdit}>Guardar cambios</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* MODAL CIERRE MES */}
+          {closingMonth && (
+            <div style={S.overlay}>
+              <div style={{ ...S.modal, textAlign: "center" }}>
+                <div style={{ fontSize: "64px" }}>🏆</div>
+                <div style={{ fontWeight: "900", fontSize: "22px", margin: "12px 0 8px" }}>¡Cierre de {MONTH_NAMES[now.getMonth()]}!</div>
+                <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "14px" }}>El crack del mes es:</div>
+                <div style={{ fontSize: "36px", fontWeight: "900", color: winner ? getUserColor(winner.name, allNames).main : "#fff", margin: "8px 0 4px", textShadow: winner ? `0 0 30px ${getUserColor(winner.name, allNames).glow}` : "none" }}>
+                  {winner?.name || "—"} 🎉
+                </div>
+                <div style={{ color: "rgba(255,255,255,0.5)", marginBottom: "24px" }}>con {winner?.pts || 0} puntos</div>
+                <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
+                  <button style={S.dangerBtn} onClick={() => setClosingMonth(false)}>Cancelar</button>
+                  <button style={S.btn("#FFE66D")} onClick={handleCloseMonth}>Confirmar y cerrar mes →</button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<App />);
+  </script>
+</body>
+</html>
