@@ -1,1 +1,38 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Koncert App</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Koncert App</h1>
+        <p>Gyors prototípus – frontend már fut!</p>
+    </header>
+
+    <main>
+        <div class="card">
+            <h2>Pultos nézet</h2>
+            <p>Innen fogják a pultosok rögzíteni a fogyást.</p>
+            <button onclick="navigate('pult')">Megnyitás</button>
+        </div>
+
+        <div class="card">
+            <h2>Poharas nézet</h2>
+            <p>A poharasok itt jelzik a kiadott italokat.</p>
+            <button onclick="navigate('pohar')">Megnyitás</button>
+        </div>
+
+        <div class="card">
+            <h2>Admin</h2>
+            <p>Készlet, jogosultságok, statisztikák.</p>
+            <button onclick="navigate('admin')">Megnyitás</button>
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
 
