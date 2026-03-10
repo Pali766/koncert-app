@@ -101,5 +101,4 @@ async function deleteDrink(id) {
 
 document.getElementById("addDrinkBtn").onclick = addDrink;
 
-// oldal betöltésekor
 loadDrinks();
