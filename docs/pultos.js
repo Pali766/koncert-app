@@ -1,13 +1,16 @@
 // docs/pultos.js
-const supabase = window.supabaseClient;
-if (!supabase) {
-  console.error("Supabase kliens nem elérhető. Ellenőrizd a supabase.js és CDN betöltését.");
-}
+const supabase = window.supabaseClient || null;
 
 const orderListEl = document.getElementById("orderList");
 let orderItems = [];
 
+function showNotice(msg) {
+  const n = document.getElementById("pultosNotice");
+  if (n) n.textContent = msg;
+}
+
 function renderOrder() {
+  if (!orderListEl) return;
   orderListEl.innerHTML = "";
   orderItems.forEach((it, idx) => {
     const li = document.createElement("li");
@@ -36,6 +39,11 @@ function addToList() {
 }
 
 async function sendOrder() {
+  if (!supabase) {
+    alert("Supabase kliens nem elérhető. Nem lehet üzenetet küldeni.");
+    return;
+  }
+
   if (orderItems.length === 0) {
     alert("Nincs tétel a listán.");
     return;
@@ -60,6 +68,11 @@ async function sendOrder() {
   alert("Üzenet elküldve.");
 }
 
-document.getElementById("addToListBtn").onclick = addToList;
-document.getElementById("sendOrderBtn").onclick = sendOrder;
+document.addEventListener("DOMContentLoaded", () => {
+  const addBtn = document.getElementById("addToListBtn");
+  const sendBtn = document.getElementById("sendOrderBtn");
+  if (addBtn) addBtn.addEventListener("click", addToList);
+  if (sendBtn) sendBtn.addEventListener("click", sendOrder);
 
+  if (!supabase) showNotice("Supabase kliens nem elérhető. Üzenetküldés nem működik.");
+});
