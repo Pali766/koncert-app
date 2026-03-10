@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="hu">
 <head>
@@ -10,12 +9,42 @@
 <body>
 
 <header>
-    <h1>Admin felület</h1>
+    <h1>Admin felület – Italok kezelése</h1>
 </header>
 
 <main>
-    <p>Itt fogod tudni szerkeszteni az italokat és kategóriákat.</p>
+    <section>
+        <h2>Új ital hozzáadása</h2>
+        <label>
+            Név:
+            <input type="text" id="drinkName">
+        </label>
+        <button id="addDrinkBtn">Hozzáadás</button>
+    </section>
+
+    <section>
+        <h2>Italok listája</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Név</th>
+                    <th>Aktív</th>
+                    <th>Műveletek</th>
+                </tr>
+            </thead>
+            <tbody id="drinksTableBody">
+            </tbody>
+        </table>
+    </section>
 </main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    const SUPABASE_URL = "https://bvfdbcuxaanrkkehqwgs.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_yAzrw6aLWH_ykwCbzpmuhg_GhHkAyPw";
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+</script>
+<script src="admin.js"></script>
 
 </body>
 </html>
