@@ -1,62 +1,38 @@
 <!DOCTYPE html>
 <html lang="hu">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Poharas felület</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Poharas – Bevitel</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <header class="container">
+    <h1>Poharas – Bevitel</h1>
+    <a class="back" href="index.html">Vissza</a>
+  </header>
 
-<header>
-    <h1>Poharas felület</h1>
-</header>
+  <main class="container">
+    <section class="card">
+      <h2>Beérkező üzenetek</h2>
+      <ul id="messagesList"></ul>
+    </section>
 
-<main>
-    <div id="requests" class="selected-list">
-        <h2>Beérkező italok:</h2>
-        <ul id="requestList"></ul>
-    </div>
-</main>
+    <section class="card">
+      <h2>Bevitel</h2>
+      <div class="form-row">
+        <input id="bevDrink" placeholder="Ital neve" />
+        <input id="bevQty" type="number" min="1" value="1" />
+        <button id="bevBtn">Bevitel</button>
+      </div>
+    </section>
+  </main>
 
-<!-- Supabase -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-    const SUPABASE_URL = "https://bvfdbcuxaanrkkehqwgs.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_yAzrw6aLWH_ykwCbzpmuhg_GhHkAyPw";
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    const listEl = document.getElementById("requestList");
-
-    function addOrderToList(order) {
-        const li = document.createElement("li");
-        li.textContent = `${order.drink} (${order.qty})`;
-        listEl.appendChild(li);
-    }
-
-    async function loadInitialOrders() {
-        const { data, error } = await supabase
-            .from("orders")
-            .select("*")
-            .order("id", { ascending: true });
-
-        if (!error && data) {
-            data.forEach(addOrderToList);
-        }
-    }
-
-    // Realtime figyelés
-    supabase
-        .channel("orders-realtime")
-        .on(
-            "postgres_changes",
-            { event: "INSERT", schema: "public", table: "orders" },
-            (payload) => addOrderToList(payload.new)
-        )
-        .subscribe();
-
-    loadInitialOrders();
-</script>
-
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase.js"></script>
+  <script>
+    const supabase = window.supabaseClient;
+  </script>
+  <script src="poharas.js"></script>
 </body>
 </html>
