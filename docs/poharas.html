@@ -13,35 +13,49 @@
 </header>
 
 <main>
-    <p>Itt fognak megjelenni a pultos kérései.</p>
-
     <div id="requests" class="selected-list">
         <h2>Beérkező italok:</h2>
         <ul id="requestList"></ul>
     </div>
 </main>
 
+<!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-    // Később backendről jön majd
-    // Most csak tesztadatok, hogy lásd a működést
-    const testRequests = [
-        { drink: "Coca-Cola", qty: 2 },
-        { drink: "Vodka", qty: 5 },
-        { drink: "Fanta Narancs", qty: 1 }
-    ];
+    const SUPABASE_URL = "https://bvfdbcuxaanrkkehqwgs.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_yAzrw6aLWH_ykwCbzpmuhg_GhHkAyPw";
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    function loadRequests() {
-        const list = document.getElementById("requestList");
-        list.innerHTML = "";
+    const listEl = document.getElementById("requestList");
 
-        testRequests.forEach(item => {
-            const li = document.createElement("li");
-            li.textContent = `${item.drink} (${item.qty})`;
-            list.appendChild(li);
-        });
+    function addOrderToList(order) {
+        const li = document.createElement("li");
+        li.textContent = `${order.drink} (${order.qty})`;
+        listEl.appendChild(li);
     }
 
-    loadRequests();
+    async function loadInitialOrders() {
+        const { data, error } = await supabase
+            .from("orders")
+            .select("*")
+            .order("id", { ascending: true });
+
+        if (!error && data) {
+            data.forEach(addOrderToList);
+        }
+    }
+
+    // Realtime figyelés
+    supabase
+        .channel("orders-realtime")
+        .on(
+            "postgres_changes",
+            { event: "INSERT", schema: "public", table: "orders" },
+            (payload) => addOrderToList(payload.new)
+        )
+        .subscribe();
+
+    loadInitialOrders();
 </script>
 
 </body>
