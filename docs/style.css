@@ -22,6 +22,8 @@ header {
     border-radius: 10px;
     color: white;
     cursor: pointer;
+    text-align: center;
+    text-decoration: none;
 }
 
 .main-btn:hover {
@@ -91,9 +93,16 @@ header {
     background: #444;
 }
 
+.qty-buttons {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
 .qty-buttons button {
-    padding: 15px;
+    flex: 1;
     margin: 5px;
+    padding: 15px;
     background: #444;
     border: none;
     color: white;
@@ -114,4 +123,8 @@ header {
     color: white;
     cursor: pointer;
     border-radius: 8px;
+}
+
+.close-btn:hover {
+    background: #cc0000;
 }
