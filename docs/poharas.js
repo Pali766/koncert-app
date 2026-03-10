@@ -1,13 +1,23 @@
 // docs/poharas.js
-const supabase = window.supabaseClient;
-if (!supabase) {
-  console.error("Supabase kliens nem elérhető. Ellenőrizd a supabase.js és CDN betöltését.");
-}
+const supabase = window.supabaseClient || null;
 
 const messagesList = document.getElementById("messagesList");
 
+function showNotice(msg) {
+  const n = document.getElementById("poharasNotice");
+  if (n) n.textContent = msg;
+}
+
 async function loadMessages() {
+  if (!messagesList) return;
   messagesList.innerHTML = "<li>Betöltés...</li>";
+
+  if (!supabase) {
+    messagesList.innerHTML = "<li>Supabase kliens nem elérhető. Üzenetek nem tölthetők be.</li>";
+    showNotice("Valós idejű üzenetek nem elérhetők.");
+    return;
+  }
+
   const { data, error } = await supabase
     .from("messages")
     .select("*")
@@ -29,6 +39,11 @@ async function loadMessages() {
 }
 
 async function bevitel() {
+  if (!supabase) {
+    alert("Supabase kliens nem elérhető. Nem lehet menteni.");
+    return;
+  }
+
   const name = document.getElementById("bevDrink").value.trim();
   const qty = parseInt(document.getElementById("bevQty").value, 10) || 1;
   if (!name) {
@@ -54,9 +69,10 @@ async function bevitel() {
   await loadMessages();
 }
 
-document.getElementById("bevBtn").onclick = bevitel;
+document.addEventListener("DOMContentLoaded", () => {
+  const bevBtn = document.getElementById("bevBtn");
+  if (bevBtn) bevBtn.addEventListener("click", bevitel);
 
-window.addEventListener("load", () => {
+  if (!supabase) showNotice("Supabase kliens nem elérhető. Bevitel és üzenetek nem működnek.");
   loadMessages();
 });
-
