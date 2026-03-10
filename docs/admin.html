@@ -1,49 +1,42 @@
 <!DOCTYPE html>
 <html lang="hu">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin felület</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Admin – Italkezelés</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <header class="container">
+    <h1>Admin – Italkezelés</h1>
+    <a class="back" href="index.html">Vissza</a>
+  </header>
 
-<header>
-    <h1>Admin felület – Italok kezelése</h1>
-</header>
-
-<main>
-    <section>
-        <h2>Új ital hozzáadása</h2>
-        <label>
-            Név:
-            <input type="text" id="drinkName">
-        </label>
+  <main class="container">
+    <section class="card">
+      <h2>Új ital hozzáadása</h2>
+      <div class="form-row">
+        <input id="drinkName" placeholder="Ital neve" />
         <button id="addDrinkBtn">Hozzáadás</button>
+      </div>
     </section>
 
-    <section>
-        <h2>Italok listája</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Név</th>
-                    <th>Aktív</th>
-                    <th>Műveletek</th>
-                </tr>
-            </thead>
-            <tbody id="drinksTableBody"></tbody>
-        </table>
+    <section class="card">
+      <h2>Italok listája</h2>
+      <table class="table">
+        <thead>
+          <tr><th>Név</th><th>Aktív</th><th>Műveletek</th></tr>
+        </thead>
+        <tbody id="drinksTableBody"></tbody>
+      </table>
     </section>
-</main>
+  </main>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-    const SUPABASE_URL = "https://bvfdbcuxaanrkkehqwgs.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_yAzrw6aLWH_ykwCbzpmuhg_GhHkAyPw";
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-</script>
-<script src="admin.js"></script>
-
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase.js"></script>
+  <script>
+    const supabase = window.supabaseClient;
+  </script>
+  <script src="admin.js"></script>
 </body>
 </html>
