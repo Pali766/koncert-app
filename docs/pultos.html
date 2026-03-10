@@ -1,169 +1,35 @@
 <!DOCTYPE html>
 <html lang="hu">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pultos felület</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Pultos – Italkérés</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <header class="container">
+    <h1>Pultos – Italkérés</h1>
+    <a class="back" href="index.html">Vissza</a>
+  </header>
 
-<header>
-    <h1>Pultos felület</h1>
-</header>
+  <main class="container">
+    <section class="card">
+      <h2>Ital hozzáadása üzenethez</h2>
+      <div class="form-row">
+        <input id="searchDrink" placeholder="Ital keresése" />
+        <input id="qty" type="number" min="1" value="1" />
+        <button id="addToListBtn">Hozzáad</button>
+      </div>
+      <ul id="orderList"></ul>
+      <button id="sendOrderBtn">Küldés poharasoknak</button>
+    </section>
+  </main>
 
-<main>
-    <button id="openSearchBtn" class="main-btn">Ital kérése</button>
-
-    <div id="selectedList" class="selected-list">
-        <h2>Kiválasztott italok:</h2>
-        <ul id="orderList"></ul>
-        <button id="sendBtn" class="send-btn">Küldés</button>
-    </div>
-</main>
-
-<!-- Kereső popup -->
-<div id="searchPopup" class="popup hidden">
-    <div class="popup-content">
-        <h2>Ital keresése</h2>
-        <input type="text" id="searchInput" placeholder="Kezdj el gépelni...">
-
-        <div id="searchResults" class="results"></div>
-
-        <button class="close-btn" onclick="closeSearch()">Bezárás</button>
-    </div>
-</div>
-
-<!-- Mennyiség popup -->
-<div id="quantityPopup" class="popup hidden">
-    <div class="popup-content">
-        <h2 id="selectedDrinkName"></h2>
-        <p>Mennyiség:</p>
-
-        <div class="qty-buttons">
-            <button onclick="addQuantity(1)">+1</button>
-            <button onclick="addQuantity(2)">+2</button>
-            <button onclick="addQuantity(5)">+5</button>
-            <button onclick="customQuantity()">Egyedi</button>
-        </div>
-
-        <button class="close-btn" onclick="closeQuantity()">Mégse</button>
-    </div>
-</div>
-
-<!-- Supabase -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<script>
-    // Supabase inicializálás
-    const SUPABASE_URL = "https://bvfdbcuxaanrkkehqwgs.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_yAzrw6aLWH_ykwCbzpmuhg_GhHkAyPw";
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    // Italok listája
-    const drinks = [
-        "Coca-Cola",
-        "Coca-Cola Zero",
-        "Coca-Cola Zero Zero",
-        "Fanta Narancs",
-        "Sprite",
-        "Vodka",
-        "Whiskey",
-        "Sör",
-        "Bor"
-    ];
-
-    let order = [];
-    let selectedDrink = null;
-
-    // Kereső popup
-    document.getElementById("openSearchBtn").onclick = () => {
-        document.getElementById("searchPopup").classList.remove("hidden");
-        document.getElementById("searchInput").value = "";
-        document.getElementById("searchResults").innerHTML = "";
-    };
-
-    function closeSearch() {
-        document.getElementById("searchPopup").classList.add("hidden");
-    }
-
-    document.getElementById("searchInput").oninput = () => {
-        const text = document.getElementById("searchInput").value.toLowerCase();
-        const results = drinks.filter(d => d.toLowerCase().includes(text));
-
-        const container = document.getElementById("searchResults");
-        container.innerHTML = "";
-
-        results.forEach(drink => {
-            const btn = document.createElement("button");
-            btn.textContent = drink;
-            btn.onclick = () => selectDrink(drink);
-            container.appendChild(btn);
-        });
-    };
-
-    function selectDrink(drink) {
-        selectedDrink = drink;
-        document.getElementById("selectedDrinkName").textContent = drink;
-        document.getElementById("quantityPopup").classList.remove("hidden");
-    }
-
-    function closeQuantity() {
-        document.getElementById("quantityPopup").classList.add("hidden");
-    }
-
-    // Mennyiség hozzáadása
-    function addQuantity(qty) {
-        order.push({ drink: selectedDrink, qty });
-        closeQuantity();
-        closeSearch();
-        updateOrderList();
-    }
-
-    function customQuantity() {
-        const qty = parseInt(prompt("Add meg a mennyiséget:"), 10);
-        if (!isNaN(qty) && qty > 0) {
-            addQuantity(qty);
-        }
-    }
-
-    // Lista frissítése
-    function updateOrderList() {
-        const list = document.getElementById("orderList");
-        list.innerHTML = "";
-
-        order.forEach(item => {
-            const li = document.createElement("li");
-            li.textContent = `${item.drink} (${item.qty})`;
-            list.appendChild(li);
-        });
-    }
-
-    // Küldés Supabase-be
-    document.getElementById("sendBtn").onclick = async () => {
-        if (order.length === 0) {
-            alert("Nincs mit küldeni.");
-            return;
-        }
-
-        const rows = order.map(o => ({
-            drink: o.drink,
-            qty: o.qty
-        }));
-
-        const { error } = await supabase.from("orders").insert(rows);
-
-        if (error) {
-            console.error(error);
-            alert("Hiba történt a mentés közben.");
-            return;
-        }
-
-        alert("Rendelés elküldve!");
-        order = [];
-        updateOrderList();
-    };
-</script>
-
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase.js"></script>
+  <script>
+    const supabase = window.supabaseClient;
+  </script>
+  <script src="pultos.js"></script>
 </body>
 </html>
