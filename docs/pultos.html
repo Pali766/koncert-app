@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pultos felület</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+    <h1>Pultos felület</h1>
+</header>
+
+<main>
+    <button id="openSearchBtn" class="main-btn">Ital kérése</button>
+
+    <div id="selectedList" class="selected-list">
+        <h2>Kiválasztott italok:</h2>
+        <ul id="orderList"></ul>
+        <button id="sendBtn" class="send-btn">Küldés</button>
+    </div>
+</main>
+
+<!-- Kereső popup -->
+<div id="searchPopup" class="popup hidden">
+    <div class="popup-content">
+        <h2>Ital keresése</h2>
+        <input type="text" id="searchInput" placeholder="Kezdj el gépelni...">
+
+        <div id="searchResults" class="results"></div>
+
+        <button class="close-btn" onclick="closeSearch()">Bezárás</button>
+    </div>
+</div>
+
+<!-- Mennyiség popup -->
+<div id="quantityPopup" class="popup hidden">
+    <div class="popup-content">
+        <h2 id="selectedDrinkName"></h2>
+        <p>Mennyiség:</p>
+
+        <div class="qty-buttons">
+            <button onclick="addQuantity(1)">+1</button>
+            <button onclick="addQuantity(2)">+2</button>
+            <button onclick="addQuantity(5)">+5</button>
+            <button onclick="customQuantity()">Egyedi</button>
+        </div>
+
+        <button class="close-btn" onclick="closeQuantity()">Mégse</button>
+    </div>
+</div>
+
+<!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    const SUPABASE_URL = "https://bvfdbcuxaanrkkehqwgs.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_yAzrw6aLWH_ykwCbzpmuhg_GhHkAyPw";
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+</script>
+
+<script src="app.js"></script>
+</body>
+</html>
