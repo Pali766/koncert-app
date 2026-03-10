@@ -14,8 +14,35 @@
 
 <main>
     <p>Itt fognak megjelenni a pultos kérései.</p>
+
+    <div id="requests" class="selected-list">
+        <h2>Beérkező italok:</h2>
+        <ul id="requestList"></ul>
+    </div>
 </main>
+
+<script>
+    // Később backendről jön majd
+    // Most csak tesztadatok, hogy lásd a működést
+    const testRequests = [
+        { drink: "Coca-Cola", qty: 2 },
+        { drink: "Vodka", qty: 5 },
+        { drink: "Fanta Narancs", qty: 1 }
+    ];
+
+    function loadRequests() {
+        const list = document.getElementById("requestList");
+        list.innerHTML = "";
+
+        testRequests.forEach(item => {
+            const li = document.createElement("li");
+            li.textContent = `${item.drink} (${item.qty})`;
+            list.appendChild(li);
+        });
+    }
+
+    loadRequests();
+</script>
 
 </body>
 </html>
-
