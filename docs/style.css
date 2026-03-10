@@ -1,4 +1,3 @@
-
 body {
     margin: 0;
     font-family: Arial, sans-serif;
@@ -13,29 +12,106 @@ header {
     border-bottom: 2px solid #444;
 }
 
-main {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    padding: 20px;
+.main-btn {
+    display: block;
+    margin: 40px auto;
+    padding: 20px 40px;
+    font-size: 22px;
+    background: #ff0066;
+    border: none;
+    border-radius: 10px;
+    color: white;
+    cursor: pointer;
 }
 
-.card {
+.main-btn:hover {
+    background: #ff3385;
+}
+
+.selected-list {
+    width: 90%;
+    margin: 20px auto;
     background: #1e1e1e;
     padding: 20px;
     border-radius: 10px;
     border: 1px solid #333;
 }
 
-button {
-    padding: 10px 20px;
-    background: #ff0066;
+.send-btn {
+    margin-top: 20px;
+    padding: 15px 30px;
+    background: #00aa55;
     border: none;
-    border-radius: 5px;
+    border-radius: 10px;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.send-btn:hover {
+    background: #00cc66;
+}
+
+/* Popup */
+.popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.hidden {
+    display: none;
+}
+
+.popup-content {
+    background: #222;
+    padding: 20px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 400px;
+}
+
+.results button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    background: #333;
+    border: 1px solid #555;
     color: white;
     cursor: pointer;
 }
 
-button:hover {
-    background: #ff3385;
+.results button:hover {
+    background: #444;
+}
+
+.qty-buttons button {
+    padding: 15px;
+    margin: 5px;
+    background: #444;
+    border: none;
+    color: white;
+    cursor: pointer;
+    border-radius: 8px;
+}
+
+.qty-buttons button:hover {
+    background: #555;
+}
+
+.close-btn {
+    margin-top: 20px;
+    padding: 10px;
+    width: 100%;
+    background: #aa0000;
+    border: none;
+    color: white;
+    cursor: pointer;
+    border-radius: 8px;
 }
