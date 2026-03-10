@@ -3,36 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Koncert App</title>
+    <title>Pultos felület</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
     <header>
-        <h1>Koncert App</h1>
-        <p>Gyors prototípus – frontend már fut!</p>
+        <h1>Pultos felület</h1>
     </header>
 
     <main>
-        <div class="card">
-            <h2>Pultos nézet</h2>
-            <p>Innen fogják a pultosok rögzíteni a fogyást.</p>
-            <button onclick="navigate('pult')">Megnyitás</button>
-        </div>
+        <button id="openSearchBtn" class="main-btn">Ital kérése</button>
 
-        <div class="card">
-            <h2>Poharas nézet</h2>
-            <p>A poharasok itt jelzik a kiadott italokat.</p>
-            <button onclick="navigate('pohar')">Megnyitás</button>
-        </div>
-
-        <div class="card">
-            <h2>Admin</h2>
-            <p>Készlet, jogosultságok, statisztikák.</p>
-            <button onclick="navigate('admin')">Megnyitás</button>
+        <div id="selectedList" class="selected-list">
+            <h2>Kiválasztott italok:</h2>
+            <ul id="orderList"></ul>
+            <button id="sendBtn" class="send-btn">Küldés</button>
         </div>
     </main>
+
+    <!-- Kereső popup -->
+    <div id="searchPopup" class="popup hidden">
+        <div class="popup-content">
+            <h2>Ital keresése</h2>
+            <input type="text" id="searchInput" placeholder="Kezdj el gépelni...">
+
+            <div id="searchResults" class="results"></div>
+
+            <button class="close-btn" onclick="closeSearch()">Bezárás</button>
+        </div>
+    </div>
+
+    <!-- Mennyiség popup -->
+    <div id="quantityPopup" class="popup hidden">
+        <div class="popup-content">
+            <h2 id="selectedDrinkName"></h2>
+            <p>Mennyiség:</p>
+
+            <div class="qty-buttons">
+                <button onclick="addQuantity(1)">+1</button>
+                <button onclick="addQuantity(2)">+2</button>
+                <button onclick="addQuantity(5)">+5</button>
+                <button onclick="customQuantity()">Egyedi</button>
+            </div>
+
+            <button class="close-btn" onclick="closeQuantity()">Mégse</button>
+        </div>
+    </div>
 
     <script src="app.js"></script>
 </body>
 </html>
-
