@@ -1,11 +1,21 @@
 // docs/admin.js
-const supabase = window.supabaseClient;
-if (!supabase) {
-  console.error("Supabase kliens nem elérhető. Ellenőrizd a supabase.js és CDN betöltését.");
+// Biztonságos admin logika — csak window.supabaseClient használata
+
+const supabase = window.supabaseClient || null;
+
+function showNotice(msg) {
+  const n = document.getElementById("adminNotice");
+  if (n) n.textContent = msg;
 }
 
 async function loadDrinks() {
   const tbody = document.getElementById("drinksTableBody");
+  if (!supabase) {
+    tbody.innerHTML = "<tr><td colspan='3'>Supabase kliens nem elérhető. Ellenőrizd a supabase.js betöltését.</td></tr>";
+    showNotice("Figyelem: valós idejű funkciók nem működnek, amíg a Supabase kliens nem elérhető.");
+    return;
+  }
+
   tbody.innerHTML = "<tr><td colspan='3'>Betöltés...</td></tr>";
 
   const { data, error } = await supabase
@@ -56,6 +66,11 @@ async function loadDrinks() {
 }
 
 async function addDrink() {
+  if (!supabase) {
+    alert("Supabase kliens nem elérhető. Nem lehet menteni.");
+    return;
+  }
+
   const nameInput = document.getElementById("drinkName");
   const name = nameInput.value.trim();
   if (!name) {
@@ -75,6 +90,7 @@ async function addDrink() {
 }
 
 async function toggleActive(id, newState) {
+  if (!supabase) return alert("Supabase kliens nem elérhető.");
   const { error } = await supabase.from("drinks").update({ active: newState }).eq("id", id);
   if (error) {
     console.error(error);
@@ -85,6 +101,7 @@ async function toggleActive(id, newState) {
 }
 
 async function deleteDrink(id) {
+  if (!supabase) return alert("Supabase kliens nem elérhető.");
   if (!confirm("Biztosan törlöd ezt az italt?")) return;
   const { error } = await supabase.from("drinks").delete().eq("id", id);
   if (error) {
@@ -95,9 +112,8 @@ async function deleteDrink(id) {
   await loadDrinks();
 }
 
-document.getElementById("addDrinkBtn").onclick = addDrink;
-
-window.addEventListener("load", () => {
+document.addEventListener("DOMContentLoaded", () => {
+  const addBtn = document.getElementById("addDrinkBtn");
+  if (addBtn) addBtn.addEventListener("click", addDrink);
   loadDrinks();
 });
-
