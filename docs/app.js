@@ -1,104 +1,104 @@
-// --- Ital lista (később adminból jön majd) ---
-const drinks = [
-    "Coca-Cola",
-    "Coca-Cola Zero",
-    "Coca-Cola Zero Zero",
-    "Fanta Narancs",
-    "Sprite",
-    "Vodka",
-    "Whiskey",
-    "Sör",
-    "Bor"
-];
+async function loadDrinks() {
+    const tbody = document.getElementById("drinksTableBody");
+    tbody.innerHTML = "";
 
-let order = [];
-let selectedDrink = null;
-
-// --- Kereső popup ---
-document.getElementById("openSearchBtn").onclick = () => {
-    document.getElementById("searchPopup").classList.remove("hidden");
-    document.getElementById("searchInput").value = "";
-    document.getElementById("searchResults").innerHTML = "";
-};
-
-function closeSearch() {
-    document.getElementById("searchPopup").classList.add("hidden");
-}
-
-document.getElementById("searchInput").oninput = () => {
-    const text = document.getElementById("searchInput").value.toLowerCase();
-    const results = drinks.filter(d => d.toLowerCase().includes(text));
-
-    const container = document.getElementById("searchResults");
-    container.innerHTML = "";
-
-    results.forEach(drink => {
-        const btn = document.createElement("button");
-        btn.textContent = drink;
-        btn.onclick = () => selectDrink(drink);
-        container.appendChild(btn);
-    });
-};
-
-function selectDrink(drink) {
-    selectedDrink = drink;
-    document.getElementById("selectedDrinkName").textContent = drink;
-    document.getElementById("quantityPopup").classList.remove("hidden");
-}
-
-function closeQuantity() {
-    document.getElementById("quantityPopup").classList.add("hidden");
-}
-
-// --- Mennyiség ---
-function addQuantity(qty) {
-    order.push({ drink: selectedDrink, qty });
-    closeQuantity();
-    closeSearch();
-    updateOrderList();
-}
-
-function customQuantity() {
-    const qty = parseInt(prompt("Add meg a mennyiséget:"), 10);
-    if (!isNaN(qty) && qty > 0) {
-        addQuantity(qty);
-    }
-}
-
-// --- Lista frissítése ---
-function updateOrderList() {
-    const list = document.getElementById("orderList");
-    list.innerHTML = "";
-
-    order.forEach(item => {
-        const li = document.createElement("li");
-        li.textContent = `${item.drink} (${item.qty})`;
-        list.appendChild(li);
-    });
-}
-
-// --- Küldés Supabase-be ---
-document.getElementById("sendBtn").onclick = async () => {
-    if (order.length === 0) {
-        alert("Nincs mit küldeni.");
-        return;
-    }
-
-    const rows = order.map(o => ({
-        drink: o.drink,
-        qty: o.qty
-    }));
-
-    const { error } = await supabase.from("orders").insert(rows);
+    const { data, error } = await supabase
+        .from("drinks")
+        .select("*")
+        .order("name", { ascending: true });
 
     if (error) {
         console.error(error);
-        alert("Hiba történt a mentés közben.");
+        tbody.innerHTML = "<tr><td colspan='3'>Hiba történt a betöltéskor.</td></tr>";
         return;
     }
 
-    alert("Rendelés elküldve!");
-    order = [];
-    updateOrderList();
-};
+    data.forEach(drink => {
+        const tr = document.createElement("tr");
 
+        const nameTd = document.createElement("td");
+        nameTd.textContent = drink.name;
+
+        const activeTd = document.createElement("td");
+        activeTd.textContent = drink.active ? "Igen" : "Nem";
+
+        const actionsTd = document.createElement("td");
+
+        const toggleBtn = document.createElement("button");
+        toggleBtn.textContent = drink.active ? "Inaktiválás" : "Aktiválás";
+        toggleBtn.onclick = () => toggleActive(drink.id, !drink.active);
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "Törlés";
+        deleteBtn.onclick = () => deleteDrink(drink.id);
+
+        actionsTd.appendChild(toggleBtn);
+        actionsTd.appendChild(deleteBtn);
+
+        tr.appendChild(nameTd);
+        tr.appendChild(activeTd);
+        tr.appendChild(actionsTd);
+
+        tbody.appendChild(tr);
+    });
+}
+
+async function addDrink() {
+    const nameInput = document.getElementById("drinkName");
+    const name = nameInput.value.trim();
+
+    if (!name) {
+        alert("Adj meg egy nevet!");
+        return;
+    }
+
+    const { error } = await supabase.from("drinks").insert({
+        name,
+        active: true
+    });
+
+    if (error) {
+        console.error(error);
+        alert("Hiba történt az ital mentésekor.");
+        return;
+    }
+
+    nameInput.value = "";
+    await loadDrinks();
+}
+
+async function toggleActive(id, newState) {
+    const { error } = await supabase
+        .from("drinks")
+        .update({ active: newState })
+        .eq("id", id);
+
+    if (error) {
+        console.error(error);
+        alert("Hiba történt az állapot módosításakor.");
+        return;
+    }
+
+    await loadDrinks();
+}
+
+async function deleteDrink(id) {
+    if (!confirm("Biztosan törlöd ezt az italt?")) return;
+
+    const { error } = await supabase
+        .from("drinks")
+        .delete()
+        .eq("id", id);
+
+    if (error) {
+        console.error(error);
+        alert("Hiba történt a törléskor.");
+        return;
+    }
+
+    await loadDrinks();
+}
+
+document.getElementById("addDrinkBtn").onclick = addDrink;
+
+loadDrinks();
